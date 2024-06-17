@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forest Heims</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #333;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-y: scroll;
+            overflow-x: hidden;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            grid-gap: 2px;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+        .tile {
+            width: 100%;
+            height: 50px;
+            transition: background-color 1s, transform 1s;
+        }
+        header {
+            text-align: center;
+            padding: 2em;
+            z-index: 1;
+            color: #eeeefb;
+        }
+        .content {
+            max-width: 800px;
+            margin: auto;
+            padding: 2em;
+            z-index: 1;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+        }
+        .bio {
+            margin-bottom: 2em;
+        }
+        .contact-links a {
+            margin: 0 10px;
+            text-decoration: none;
+            color: #007BFF;
+        }
+        iframe {
+            display: block;
+            margin: 2em auto;
+            width: 100%;
+            height: auto;
+            max-width: 560px;
+            aspect-ratio: 16/9;
+        }
+        @media (max-width: 600px) {
+            body {
+                font-size: 24px;
+            }
+            header {
+                padding: 1em;
+            }
+            .content {
+                padding: 1em;
+                margin:5vw;
+            }
+            iframe {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid" id="grid"></div>
+    <header>
+        <h1>Welcome to My Personal Website</h1>
+    </header>
+    <div class="content">
+        <div class="contact-links">
+            <a href="mailto:forestheims@gmail.com" target="_blank">Email</a>
+            <a href="https://www.linkedin.com/in/forestheims/" target="_blank">LinkedIn</a>
+            <a href="https://github.com/forestheims" target="_blank">GitHub</a>
+        </div>
+        <div class="bio">
+            <h2>About Me</h2>
+            <p>Hello! I'm a web enthusiast and chemist with a passion for understanding how things work.</p>
+            <p>Particular interests of mine include bioinformatics, psychology, 3D engineering, audio engineering, audio visualization, game development, Linux, cybersecurity, computational chemistry/biology, genetic algorithms, drug discovery, organic chemistry, psychopharmacology, psychonautics, and open source software and education.</p>
+            <p>I come from an academic background of chemistry, philosophy, and art. Education will always be a value I hold, and I also love to teach and continuously learn.</p>
+            <p>In my spare time, I enjoy learning new concepts, rollerskating, contemplating the nature of reality, and hiking. I also love exploring new places.</p>
+            <p>Feel free to reach out to me through any of the social links above. I'm always open to discussing new projects, ideas, or just having a friendly chat!</p>
+        </div>
+        <iframe width="560" height="315" src="https://www.youtube.com/embed/0dcFWLV_OlI" title="Soothing rain sounds in hitting clay jars with distant thunder. Great for relaxing and deep sleep." frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    </div>
+    <script>
+        const colors = ["#f400ff50",
+        "#6f00ef50",
+        "#007fff50",
+        "#77fb0050",
+        "#feff0050",
+        "#faab0050",
+        "#f400ff50"];
+
+    function createGrid() {
+        const grid = document.getElementById('grid');
+        const tileCount = 200;
+        for (let i = 0; i < tileCount; i++) {
+            const tile = document.createElement('div');
+            tile.classList.add('tile');
+            grid.appendChild(tile);
+        }
+    }
+
+    function changeTileColors() {
+        const tiles = document.querySelectorAll('.tile');
+        tiles.forEach(tile => {
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            tile.style.backgroundColor = randomColor;
+        });
+    }
+
+    function swapTiles() {
+        const tiles = document.querySelectorAll('.tile');
+        const tileCount = tiles.length;
+        setInterval(() => {
+            const index1 = Math.floor(Math.random() * tileCount);
+            const index2 = Math.floor(Math.random() * tileCount);
+            if (index1 !== index2) {
+                const tile1 = tiles[index1];
+                const tile2 = tiles[index2];
+                
+                const tempTransform = tile1.style.transform;
+                tile1.style.transform = tile2.style.transform;
+                tile2.style.transform = tempTransform;
+                
+                const parent = tile1.parentNode;
+                const next1 = tile1.nextElementSibling;
+                const next2 = tile2.nextElementSibling;
+
+                parent.insertBefore(tile2, next1);
+                parent.insertBefore(tile1, next2);
+            }
+        }, 100);
+    }
+
+    function positionTiles() {
+        const tiles = document.querySelectorAll('.tile');
+        tiles.forEach((tile, index) => {
+            const row = Math.floor(index / 10);
+            const col = index % 10;
+            tile.style.transform = `translate(${col * 52}px, ${row * 52}px)`;
+        });
+    }
+
+    createGrid();
+    positionTiles();
+    changeTileColors();
+    swapTiles();
+    </script>
+</body>
+</html>
