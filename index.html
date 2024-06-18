@@ -8,7 +8,6 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #333;
             margin: 0;
             display: flex;
             flex-direction: column;
@@ -17,16 +16,25 @@
             min-height: 100vh;
             overflow-y: scroll;
             overflow-x: hidden;
+            background-color: #333;
         }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
-            grid-gap: 2px;
-            width: 100%;
-            height: 100%;
-            position: absolute;
+        #threejs-container {
+            position: fixed;
             top: 0;
             left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        #twod-container {
+            display: none;
+            position: fixed;
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            grid-gap: 2px;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             z-index: -1;
         }
         .tile {
@@ -34,11 +42,28 @@
             height: 50px;
             transition: background-color 1s, transform 1s;
         }
+        #toggleButton {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 2;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #toggleButton:active {
+            background-color: #44ac3b;
+        }
         header {
             text-align: center;
             padding: 2em;
             z-index: 1;
             color: #eeeefb;
+            border-radius: 8px;
+            margin: 1em;
         }
         .content {
             max-width: 800px;
@@ -47,6 +72,7 @@
             z-index: 1;
             background-color: rgba(255, 255, 255, 0.8);
             border-radius: 8px;
+            margin-bottom: 100vh;
         }
         .bio {
             margin-bottom: 2em;
@@ -66,14 +92,15 @@
         }
         @media (max-width: 600px) {
             body {
-                font-size: 24px;
+                font-size: 20px;
             }
             header {
                 padding: 1em;
             }
             .content {
                 padding: 1em;
-                margin:5vw;
+                margin: 5vw;
+                margin-bottom: 100vh;
             }
             iframe {
                 max-width: 100%;
@@ -82,8 +109,9 @@
     </style>
 </head>
 <body>
-    <div class="grid" id="grid"></div>
-    <header>
+    <div id="threejs-container"></div>
+    <div id="twod-container"></div>
+    <header id="header">
         <h1>Welcome to My Personal Website</h1>
     </header>
     <div class="content">
@@ -91,6 +119,7 @@
             <a href="mailto:forestheims@gmail.com" target="_blank">Email</a>
             <a href="https://www.linkedin.com/in/forestheims/" target="_blank">LinkedIn</a>
             <a href="https://github.com/forestheims" target="_blank">GitHub</a>
+            <button id="toggleButton">Switch Background</button>
         </div>
         <div class="bio">
             <h2>About Me</h2>
@@ -102,70 +131,184 @@
         </div>
         <iframe width="560" height="315" src="https://www.youtube.com/embed/0dcFWLV_OlI" title="Soothing rain sounds in hitting clay jars with distant thunder. Great for relaxing and deep sleep." frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
     <script>
-        const colors = ["#f400ff50",
-        "#6f00ef50",
-        "#007fff50",
-        "#77fb0050",
-        "#feff0050",
-        "#faab0050",
-        "#f400ff50"];
+        
+        const colors = ["#f72585","#b5179e","#7209b7","#560bad","#480ca8","#3a0ca3","#3f37c9","#4361ee","#4895ef","#4cc9f0"];
 
-    function createGrid() {
-        const grid = document.getElementById('grid');
-        const tileCount = 200;
-        for (let i = 0; i < tileCount; i++) {
-            const tile = document.createElement('div');
-            tile.classList.add('tile');
-            grid.appendChild(tile);
-        }
-    }
+        let scene, camera, renderer, cubes = [];
+        let threejsVisible = true;
 
-    function changeTileColors() {
-        const tiles = document.querySelectorAll('.tile');
-        tiles.forEach(tile => {
-            const randomColor = colors[Math.floor(Math.random() * colors.length)];
-            tile.style.backgroundColor = randomColor;
-        });
-    }
+        function toggleBackground() {
+            const threejsContainer = document.getElementById('threejs-container');
+            const twodContainer = document.getElementById('twod-container');
 
-    function swapTiles() {
-        const tiles = document.querySelectorAll('.tile');
-        const tileCount = tiles.length;
-        setInterval(() => {
-            const index1 = Math.floor(Math.random() * tileCount);
-            const index2 = Math.floor(Math.random() * tileCount);
-            if (index1 !== index2) {
-                const tile1 = tiles[index1];
-                const tile2 = tiles[index2];
-                
-                const tempTransform = tile1.style.transform;
-                tile1.style.transform = tile2.style.transform;
-                tile2.style.transform = tempTransform;
-                
-                const parent = tile1.parentNode;
-                const next1 = tile1.nextElementSibling;
-                const next2 = tile2.nextElementSibling;
-
-                parent.insertBefore(tile2, next1);
-                parent.insertBefore(tile1, next2);
+            if (threejsVisible) {
+                threejsContainer.style.display = 'none';
+                twodContainer.style.display = 'grid';
+            } else {
+                threejsContainer.style.display = 'block';
+                twodContainer.style.display = 'none';
             }
-        }, 100);
-    }
+            threejsVisible = !threejsVisible;
+        }
 
-    function positionTiles() {
-        const tiles = document.querySelectorAll('.tile');
-        tiles.forEach((tile, index) => {
-            const row = Math.floor(index / 10);
-            const col = index % 10;
-            tile.style.transform = `translate(${col * 52}px, ${row * 52}px)`;
-        });
-    }
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x333333);
 
-    createGrid();
-    positionTiles();
-    changeTileColors();
-    swapTiles();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const light = new THREE.PointLight( 0x404040, 4.20 );
+            light.position.set(0, 0, 50); 
+            light.castShadow = true;
+            scene.add( light );
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            const container = document.getElementById('threejs-container');
+            container.appendChild(renderer.domElement);
+
+            window.addEventListener('resize', onWindowResize, false);
+
+            createGrid();
+            positionTiles();
+            changeTileColors();
+            swapTiles();
+
+            camera.position.z = 100;
+
+            init2DBackground();
+
+            const toggleButton = document.getElementById('toggleButton');
+            toggleButton.addEventListener('click', toggleBackground);
+
+            animate();
+        }
+
+        function init2DBackground() {
+            function createGrid() {
+                const grid = document.getElementById('twod-container');
+                const tileCount = 200;
+                for (let i = 0; i < tileCount; i++) {
+                    const tile = document.createElement('div');
+                    tile.classList.add('tile');
+                    grid.appendChild(tile);
+                }
+            }
+        
+            function changeTileColors() {
+                const tiles = document.querySelectorAll('.tile');
+                tiles.forEach(tile => {
+                    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                    tile.style.backgroundColor = randomColor;
+                });
+            }
+        
+            function swapTiles() {
+                const tiles = document.querySelectorAll('.tile');
+                const tileCount = tiles.length;
+                setInterval(() => {
+                    const index1 = Math.floor(Math.random() * tileCount);
+                    const index2 = Math.floor(Math.random() * tileCount);
+                    if (index1 !== index2) {
+                        const tile1 = tiles[index1];
+                        const tile2 = tiles[index2];
+                        
+                        const tempTransform = tile1.style.transform;
+                        tile1.style.transform = tile2.style.transform;
+                        tile2.style.transform = tempTransform;
+                        
+                        const parent = tile1.parentNode;
+                        const next1 = tile1.nextElementSibling;
+                        const next2 = tile2.nextElementSibling;
+        
+                        parent.insertBefore(tile2, next1);
+                        parent.insertBefore(tile1, next2);
+                    }
+                }, 100);
+            }
+        
+            function positionTiles() {
+                const tiles = document.querySelectorAll('.tile');
+                tiles.forEach((tile, index) => {
+                    const row = Math.floor(index / 10);
+                    const col = index % 10;
+                    tile.style.transform = `translate(${col * 52}px, ${row * 52}px)`;
+                });
+            }
+        
+            createGrid();
+            positionTiles();
+            changeTileColors();
+            swapTiles();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            positionTiles();
+        }
+
+        function createGrid() {
+            const tileCount = 200;
+            for (let i = 0; i < tileCount; i++) {
+                const geometry = new THREE.BoxGeometry(5, 5, 5);
+                const material = new THREE.MeshStandardMaterial({ color: 0xffffff });
+                const cube = new THREE.Mesh(geometry, material);
+                cube.castShadow = true;
+                cube.receiveShadow = true;
+                scene.add(cube);
+                cubes.push(cube);
+            }
+        }
+
+        function positionTiles() {
+            cubes.forEach((cube, index) => {
+                const row = Math.floor(index / 10);
+                const col = index % 10;
+                cube.position.set(col * 10 - 45, row * 10 - 90, 0);
+            });
+        }
+
+        function changeTileColors() {
+            cubes.forEach(cube => {
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                cube.material.color.set(randomColor);
+            });
+        }
+
+        function swapTiles() {
+            setInterval(() => {
+                const tileCount = cubes.length;
+                const index1 = Math.floor(Math.random() * tileCount);
+                const index2 = Math.floor(Math.random() * tileCount);
+                if (index1 !== index2) {
+                    const cube1 = cubes[index1];
+                    const cube2 = cubes[index2];
+
+                    const tempPosition = cube1.position.clone();
+                    
+                    new TWEEN.Tween(cube1.position)
+                        .to({ x: cube2.position.x, y: cube2.position.y, z: cube2.position.z }, 500)
+                        .easing(TWEEN.Easing.Quadratic.InOut)
+                        .start();
+
+                    new TWEEN.Tween(cube2.position)
+                        .to({ x: tempPosition.x, y: tempPosition.y, z: tempPosition.z }, 500)
+                        .easing(TWEEN.Easing.Quadratic.InOut)
+                        .start();
+                }
+            }, 1000);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            TWEEN.update();
+            renderer.render(scene, camera);
+        }
+
+        init();
     </script>
 </body>
 </html>
